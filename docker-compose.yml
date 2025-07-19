@@ -1,0 +1,59 @@
+services:
+  # Redis for Pub/Sub and Cache
+  redis:
+    image: redis:7-alpine
+    container_name: sinergia-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sinergia-network
+
+  # Node.js Backend Server
+  backend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: sinergia-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    depends_on:
+      - redis
+    networks:
+      - sinergia-network
+    command: npm run dev
+
+  # Nginx (optional - for when you need reverse proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: sinergia-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - sinergia-network
+
+# Networks
+networks:
+  sinergia-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  redis_data:
+    driver: local
