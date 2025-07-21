@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { GitHubService } from '../services/github.services';
+import { GitHubService } from '../services/github.service';
 import Redis from 'ioredis';
 
 export class GitHubController {

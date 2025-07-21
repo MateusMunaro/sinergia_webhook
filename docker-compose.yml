@@ -32,7 +32,7 @@ services:
       - redis
     networks:
       - sinergia-network
-    command: npm run dev
+    command: npm run dev 
 
   # Nginx (optional - for when you need reverse proxy)
   nginx:

@@ -1,4 +1,4 @@
-import { Server as HttpServer } from 'http';
+import { Server as HttpServer} from 'http';
 import Redis from 'ioredis';
 
 export const setupGracefulShutdown = (server: HttpServer, redis: Redis) => {
