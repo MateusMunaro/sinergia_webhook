@@ -1,4 +1,18 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: sinergia-postgres
+    environment:
+      POSTGRES_DB: sinergia_db
+      POSTGRES_USER: sinergia_user
+      POSTGRES_PASSWORD: sinergia_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sinergia-network
+      
   # Redis for Pub/Sub and Cache
   redis:
     image: redis:7-alpine
@@ -56,4 +70,6 @@ networks:
 # Volumes
 volumes:
   redis_data:
+    driver: local
+  postgres_data:
     driver: local
