@@ -37,6 +37,11 @@ services:
       PORT: 3000
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: sinergia_db
+      DB_USER: sinergia_user
+      DB_PASSWORD: sinergia_password
     ports:
       - "3000:3000"
     volumes:

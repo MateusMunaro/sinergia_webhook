@@ -1,54 +1,11 @@
 import { Router } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import Redis from 'ioredis';
 import { OperationService } from '../services/operation.service';
+import { ProjectService } from '../services/project.services';
 import { Project, ProjectUser } from '../types/app';
 
-export const createProjectRoutes = (redis: Redis, operationService: OperationService): Router => {
+export const createProjectRoutes = (redis: Redis, operationService: OperationService, projectService: ProjectService): Router => {
   const router = Router();
-
-  // GET /api/v1/projects - Listar todos os projetos
-  router.get('/', async (req, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 50;
-      const offset = parseInt(req.query.offset as string) || 0;
-      
-      // Buscar IDs dos projetos
-      const projectIds = await redis.lrange('projects', offset, offset + limit - 1);
-      
-      if (projectIds.length === 0) {
-        return res.json({
-          projects: [],
-          count: 0,
-          total: 0
-        });
-      }
-      
-      // Buscar dados dos projetos
-      const projects = await Promise.all(
-        projectIds.map(async (id) => {
-          const projectData = await redis.get(`project:${id}`);
-          return projectData ? JSON.parse(projectData) : null;
-        })
-      );
-      
-      const validProjects = projects.filter(p => p !== null);
-      const total = await redis.llen('projects');
-      
-      res.json({
-        projects: validProjects,
-        count: validProjects.length,
-        total,
-        limit,
-        offset
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        error: 'Failed to retrieve projects',
-        details: error.message
-      });
-    }
-  });
 
   // POST /api/v1/projects - Criar novo projeto
   router.post('/', async (req, res) => {
@@ -61,37 +18,14 @@ export const createProjectRoutes = (redis: Redis, operationService: OperationSer
         });
       }
 
-      const project: Project = {
-        id: uuidv4(),
-        name: name.trim(),
-        description: description?.trim(),
-        githubRepo: githubRepo?.trim(),
-        ownerId,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      const project = await projectService.createProject({
+        name,
+        description,
+        githubRepo,
+        ownerId
+      });
 
-      // Salvar projeto no Redis
-      await redis.set(`project:${project.id}`, JSON.stringify(project));
-      await redis.lpush('projects', project.id);
-      
-      // Adicionar owner como usuário do projeto
-      const projectUser: ProjectUser = {
-        projectId: project.id,
-        userId: ownerId,
-        role: 'owner'
-      };
-      
-      await redis.set(
-        `project_user:${project.id}:${ownerId}`, 
-        JSON.stringify(projectUser)
-      );
-      await redis.sadd(`project_users:${project.id}`, ownerId);
-      
-      // Inicializar contadores
-      await redis.set(`version:${project.id}`, '0');
-
-      res.status(201).json({
+     res.status(201).json({
         message: 'Project created successfully',
         project
       });

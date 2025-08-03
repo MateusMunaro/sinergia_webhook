@@ -9,7 +9,6 @@ import { requestLogger } from './middleware/requestLogger';
 export const createApp = (dependencies: AppDependencies) => {
   const app = express();
   
-  // Middleware de segurança
   app.use(helmet());
   
   // CORS

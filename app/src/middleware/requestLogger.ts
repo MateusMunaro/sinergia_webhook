@@ -7,10 +7,8 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
   const userAgent = req.get('User-Agent') || 'Unknown';
   const ip = req.ip || req.connection.remoteAddress || 'Unknown';
 
-  // Log da requisição
   console.log(`[${timestamp}] ${method} ${url} - IP: ${ip} - User-Agent: ${userAgent}`);
 
-  // Captura o status code da resposta
   const originalSend = res.send;
   res.send = function(data) {
     console.log(`[${timestamp}] ${method} ${url} - Status: ${res.statusCode}`);

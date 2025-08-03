@@ -7,25 +7,28 @@ import { WebSocketManager } from './websocket/WebSocketManager';
 import { OperationService } from './services/operation.service';
 import { GitHubService } from './services/github.service';
 import { setupGracefulShutdown } from './utils/gracefulShutdown';
+import { DatabaseService } from './config/database';
+import { ProjectService } from './services/project.services';
+import { UserService } from './services/user.services';
 
 async function startServer() {
   try {
-    // Inicializar conexões
     const redis = createRedisConnection();
     await redis.connect();
 
-    // Criar serviços
-    const operationService = new OperationService(redis);
+    const db = new DatabaseService();
+
+    const operationService = new OperationService(redis, db);
     const githubService = new GitHubService({
       token: process.env.GITHUB_TOKEN!,
       owner: process.env.GITHUB_OWNER!,
     }, redis);
+    const projectService = new ProjectService(redis, db);
+    const userService = new UserService(redis, db);
 
-    // Criar aplicação Express
-    const app = createApp({ redis, operationService, githubService });
+    const app = createApp({ redis, operationService, githubService, projectService, userService, db});
     const server = createServer(app);
     
-    // Configurar Socket.IO
     const io = new Server(server, {
       cors: {
         origin: process.env.FRONTEND_URL || "*",
@@ -35,19 +38,15 @@ async function startServer() {
       transports: ['websocket', 'polling']
     });
 
-    // Configurar WebSocket Manager
-    const wsManager = new WebSocketManager(io, redis, operationService);
+    const wsManager = new WebSocketManager(io, redis, operationService, projectService);
     wsManager.initialize();
 
-    // Configurar upgrade para WebSocket nativo
     server.on('upgrade', (request, socket, head) => {
       wsManager.handleUpgrade(request, socket, head);
     });
 
-    // Configurar graceful shutdown
     setupGracefulShutdown(server, redis);
 
-    // Iniciar servidor
     const PORT = process.env.PORT || 3000;
     server.listen(PORT, () => {
       console.log(`🚀 MyVC Server running on port ${PORT}`);
