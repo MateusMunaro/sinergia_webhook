@@ -13,16 +13,16 @@ Sistema de versionamento colaborativo em tempo real com integração GitHub.
 ## 🏗️ Arquitetura
 
 ```
-┌─────────────────┐     ┌─────────────────┐
-│   Cliente C     │     │   Frontend      │
-│   (Native)      │     │   (Web/Mobile)  │
-└────────┬────────┘     └────────┬────────┘
+┌─────────────────┐      ┌─────────────────┐
+│   Cliente C     │      │   Frontend      │
+│   (Native)      │      │   (Web/Mobile)  │
+└────────┬────────┘      └────────┬────────┘
          │ WebSocket/REST         │ Socket.IO
          └────────────────────────┼───────────┐
                                   │           │
                     ┌─────────────▼───────────▼─┐
-                    │      Load Balancer       │
-                    │        (Nginx)           │
+                    │      Load Balancer        │
+                    │        (Nginx)            │
                     └─────────────┬─────────────┘
                                   │
          ┌────────────────────────┼────────────────────────┐
@@ -37,8 +37,8 @@ Sistema de versionamento colaborativo em tempo real com integração GitHub.
          ┌────────────────────────┼────────────────────────┐
          │                        │                        │
 ┌────────▼────────┐     ┌────────▼────────┐     ┌────────▼────────┐
-│   PostgreSQL    │     │      Redis       │     │   GitHub API    │
-│   (Metadata)    │     │  (Cache/PubSub)  │     │ (Versionamento) │
+│   PostgreSQL    │     │      Redis       │     │   GitHub API   │
+│   (Metadata)    │     │  (Cache/PubSub)  │     │ (Versionamento)│
 └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
 
